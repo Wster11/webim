@@ -29,6 +29,11 @@ const GroupInfoForm = Form.create()(props => {
                         rules: [ { required: true, message: I18n.t('groupName') } ]
                     })(<Input />)}
                 </Form.Item>
+                <Form.Item label={'群组描述'}>
+                    {getFieldDecorator('desc', {
+                        rules: [ { required: true, message: '请输入群组描述' } ]
+                    })(<Input />)}
+                </Form.Item>
             </Form>
         </Modal>
     )
@@ -61,7 +66,8 @@ class GroupInfo extends React.Component {
             const { room } = this.props
             const info = {
                 groupId: room.groupId,
-                groupName: values.name
+                groupName: values.name,
+                description: values.desc
             }
             if (!_.isEmpty(values.description)) _.merge(info, { description: values.description })
             this.setState({ visible: false })

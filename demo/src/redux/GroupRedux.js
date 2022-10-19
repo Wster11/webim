@@ -48,7 +48,7 @@ const { Types, Creators } = createActions({
             WebIM.conn.modifyGroup({
                 groupId: info.groupId,
                 groupName: info.groupName,
-                // description: info.description,
+                description: info.description,
                 success: response => {
                     // const info = response.data // <-- !!!
                     dispatch(Creators.setLoading(false))
