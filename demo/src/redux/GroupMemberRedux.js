@@ -19,35 +19,40 @@ const { Types, Creators } = createActions({
     setGroupMember: [ 'groupId', 'members' ],
     operateGroupMember: [ 'groupId', 'username', 'operation' ],
     // ---------------async------------------
-    getGroupMember: id => {
+    getGroupMember: (id) => {
         return (dispatch, getState) => {
             WebIM.conn.queryRoomMember({
                 roomId: id,
                 success: function (members) {
                     dispatch(Creators.setGroupMember(id, members))
                 },
-                error: function () { }
+                error: function () {}
             })
         }
     },
-    joinGroup: options => {
+    joinGroup: (options) => {
         return (dispatch, getState) => {
             WebIM.conn.joinGroup(options)
         }
     },
     quitGroupAsync: (groupId, username) => {
         return (dispatch, getState) => {
-            const logger = WebIM.loglevel.getLogger('Group Member Redux - quit group')
+            const logger = WebIM.loglevel.getLogger(
+                'Group Member Redux - quit group'
+            )
             WebIM.conn.quitGroup({
                 groupId,
-                success: response => {
+                success: (response) => {
                     logger.info(response)
                     dispatch(GroupActions.switchRightSider({ rightSiderOffset: 0 }))
                     dispatch(Creators.operateGroupMember(groupId, username, 'del'))
                     dispatch(GroupActions.deleteGroup(groupId))
                     history.push('/group')
                 },
-                error: e => logger.error(`an error found while invoking resultful quitGroup: ${e.message}`)
+                error: (e) =>
+                    logger.error(
+                        `an error found while invoking resultful quitGroup: ${e.message}`
+                    )
             })
         }
     },
@@ -56,16 +61,16 @@ const { Types, Creators } = createActions({
             WebIM.conn.inviteToGroup({
                 groupId,
                 users,
-                success: response => {
+                success: (response) => {
                     dispatch(Creators.listGroupMemberAsync({ groupId: groupId }))
                 },
-                error: e => {
+                error: (e) => {
                     if (e.type === 17) {
                         let data = JSON.parse(e.data)
-                        if(data.error_description.includes('already in group')){
-                            return message.error(users.toString() + ' already in group');
+                        if (data.error_description.includes('already in group')) {
+                            return message.error(users.toString() + ' already in group')
                         }
-                        message.error('你没有权限做此操作');
+                        message.error('你没有权限做此操作')
                     }
                     // dispatch(Creators.setLoading(false))
                     // dispatch(Creators.setLoadingFailed(true))
@@ -73,7 +78,7 @@ const { Types, Creators } = createActions({
             })
         }
     },
-    listGroupMemberAsync: opt => {
+    listGroupMemberAsync: (opt) => {
         let { groupId, pageNum, pageSize } = opt
         pageNum = pageNum || 1
         pageSize = pageSize || 1000
@@ -82,42 +87,48 @@ const { Types, Creators } = createActions({
                 groupId,
                 pageNum,
                 pageSize,
-                success: response => {
+                success: (response) => {
                     const members = response.data
-                    let memberNames = members.map((item)=>{
+                    let memberNames = members.map((item) => {
                         return item.member || item.owner
                     })
-                    WebIM.conn.fetchUserInfoById(memberNames).then((res)=>{
+                    WebIM.conn.fetchUserInfoById(memberNames).then((res) => {
                         let infos = res.data
+                        console.log(infos, 'infos')
                         members.forEach((item) => {
                             item.info = infos[item.member || item.owner]
+                            item.groupInfo = {
+                                nickname: '群昵称'
+                            }
                         })
                         dispatch(Creators.setGroupMember(groupId, members))
                     })
                 },
-                error: e => console.log(e.message)
+                error: (e) => console.log(e.message)
             })
         }
     },
-    getGroupBlackListAsync: groupId => {
+    getGroupBlackListAsync: (groupId) => {
         return (dispatch, getState) => {
             // dispatch(Creators.setLoading(true))
 
             WebIM.conn.getGroupBlacklistNew({
                 groupId,
-                success: response => {
+                success: (response) => {
                     const blacklist = response.data // <-- !!!
                     // dispatch(Creators.setLoading(false))
                     // dispatch(Creators.setLoadingFailed(false))
                     if (blacklist) dispatch(Creators.setBlacklist(groupId, blacklist))
                 },
-                error: e => {
+                error: (e) => {
                     if (e.type === 17) {
-                        message.error('你没有权限做此操作');
+                        message.error('你没有权限做此操作')
                     }
                     // dispatch(Creators.setLoading(false))
                     // dispatch(Creators.setLoadingFailed(true))
-                    console.log(`an error found while invoking resultful getGroupBlackList: ${e.message}`)
+                    console.log(
+                        `an error found while invoking resultful getGroupBlackList: ${e.message}`
+                    )
                 }
             })
         }
@@ -127,16 +138,18 @@ const { Types, Creators } = createActions({
             WebIM.conn.groupBlockSingle({
                 groupId,
                 username,
-                success: response => {
+                success: (response) => {
                     // dispatch(Creators.setLoading(false))
                     // dispatch(Creators.setLoadingFailed(false))
                     dispatch(Creators.operateGroupMember(groupId, username, 'del'))
                 },
-                error: e => {
+                error: (e) => {
                     if (e.type === 17) {
-                        message.error('你没有权限做此操作');
+                        message.error('你没有权限做此操作')
                     }
-                    console.log(`an error found while invoking resultful mute: ${e.message}`)
+                    console.log(
+                        `an error found while invoking resultful mute: ${e.message}`
+                    )
                     // dispatch(Creators.setLoading(false))
                     // dispatch(Creators.setLoadingFailed(true))
                 }
@@ -149,20 +162,22 @@ const { Types, Creators } = createActions({
             WebIM.conn.removeGroupBlockSingle({
                 groupId,
                 username,
-                success: response => {
+                success: (response) => {
                     const { groupid, user } = response.data
                     const groupId = groupid
                     // dispatch(Creators.setLoading(false))
                     // dispatch(Creators.setLoadingFailed(false))
                     dispatch(Creators.operateBlacklist(groupId, user, 'del'))
                 },
-                error: e => {
+                error: (e) => {
                     // dispatch(Creators.setLoading(false))
                     // dispatch(Creators.setLoadingFailed(true))
                     if (e.type === 17) {
-                        message.error('你没有权限做此操作');
+                        message.error('你没有权限做此操作')
                     }
-                    console.log(`an error found while invoking resultful removeGroupBlockAsync: ${e.message}`)
+                    console.log(
+                        `an error found while invoking resultful removeGroupBlockAsync: ${e.message}`
+                    )
                 }
             })
         }
@@ -172,18 +187,20 @@ const { Types, Creators } = createActions({
             WebIM.conn.setAdmin({
                 groupId,
                 username,
-                success: response => {
+                success: (response) => {
                     // response :{
                     //    data: {
                     //        newadmin: 'leo222',
                     //        result: 'success'
                     //    }
                     // }
-                    dispatch(Creators.operateAdmin(groupId, response.data.newadmin, 'add'))
+                    dispatch(
+                        Creators.operateAdmin(groupId, response.data.newadmin, 'add')
+                    )
                 },
-                error: e => {
+                error: (e) => {
                     if (e.type === 17) {
-                        message.error('你没有权限做此操作');
+                        message.error('你没有权限做此操作')
                     }
                     console.log(`an error found while invoking restful setAdmin: ${e}`)
                 }
@@ -197,12 +214,12 @@ const { Types, Creators } = createActions({
                 groupId,
                 username,
                 muteDuration,
-                success: response => {
+                success: (response) => {
                     dispatch(Creators.operateMuted(groupId, response.data, 'add'))
                 },
-                error: e => {
+                error: (e) => {
                     if (e.type === 17) {
-                        message.error('你没有权限做此操作');
+                        message.error('你没有权限做此操作')
                     }
                     console.log(`an error found while invoking resultful mute: ${e}`)
                 }
@@ -214,12 +231,17 @@ const { Types, Creators } = createActions({
             WebIM.conn.removeAdmin({
                 groupId,
                 username,
-                success: response => dispatch(Creators.operateAdmin(groupId, response.data.oldadmin, 'del')),
-                error: e => {
+                success: (response) =>
+                    dispatch(
+                        Creators.operateAdmin(groupId, response.data.oldadmin, 'del')
+                    ),
+                error: (e) => {
                     if (e.type === 17) {
-                        message.error('你没有权限做此操作');
+                        message.error('你没有权限做此操作')
                     }
-                    console.log(`an error found while invoking resultful removeAdmin: ${e}`)
+                    console.log(
+                        `an error found while invoking resultful removeAdmin: ${e}`
+                    )
                 }
             })
         }
@@ -229,12 +251,15 @@ const { Types, Creators } = createActions({
             WebIM.conn.removeMute({
                 groupId,
                 username,
-                success: response => dispatch(Creators.operateMuted(groupId, response.data, 'del')),
-                error: e => {
+                success: (response) =>
+                    dispatch(Creators.operateMuted(groupId, response.data, 'del')),
+                error: (e) => {
                     if (e.type === 17) {
-                        message.error('你没有权限做此操作');
+                        message.error('你没有权限做此操作')
                     }
-                    console.log(`an error found while invoking resultful removeMute: ${e}`)
+                    console.log(
+                        `an error found while invoking resultful removeMute: ${e}`
+                    )
                 }
             })
         }
@@ -244,37 +269,44 @@ const { Types, Creators } = createActions({
             WebIM.conn.removeSingleGroupMember({
                 groupId,
                 username,
-                success: response => dispatch(Creators.operateGroupMember(groupId, username, 'del')),
-                error: e => {
+                success: (response) =>
+                    dispatch(Creators.operateGroupMember(groupId, username, 'del')),
+                error: (e) => {
                     if (e.type === 17) {
-                        message.error('你没有权限做此操作');
+                        message.error('你没有权限做此操作')
                     }
-                    console.log(`an error found while invoking resultful removeSingleGroupMember: ${e}`)
+                    console.log(
+                        `an error found while invoking resultful removeSingleGroupMember: ${e}`
+                    )
                 }
             })
         }
     },
-    getMutedAsync: groupId => {
+    getMutedAsync: (groupId) => {
         return (dispatch, getState) => {
             WebIM.conn.getMuted({
                 groupId,
-                success: response => {
+                success: (response) => {
                     const muted = response.data
                     if (muted) dispatch(Creators.setMuted(groupId, muted))
                 },
-                error: e => console.log(`an error found while invoking resultful getMuted: ${e}`)
+                error: (e) =>
+                    console.log(`an error found while invoking resultful getMuted: ${e}`)
             })
         }
     },
-    getGroupAdminAsync: groupId => {
+    getGroupAdminAsync: (groupId) => {
         return (dispatch, getState) => {
             WebIM.conn.getGroupAdmin({
                 groupId,
-                success: response => {
+                success: (response) => {
                     const admins = response.data
                     if (admins) dispatch(Creators.setAdmins(groupId, admins))
                 },
-                error: e => console.log(`an error found while invoking resultful getGroupAdmin: ${e}`)
+                error: (e) =>
+                    console.log(
+                        `an error found while invoking resultful getGroupAdmin: ${e}`
+                    )
             })
         }
     }
@@ -291,10 +323,10 @@ export const INITIAL_STATE = Immutable({})
 
 /**
  * save admin list of group
- * 
- * @param {any} state 
- * @param {any} { groupId, admins } 
- * @returns 
+ *
+ * @param {any} state
+ * @param {any} { groupId, admins }
+ * @returns
  */
 export const setAdmins = (state, { groupId, admins }) => {
     const group = state.getIn([ groupId ], Immutable({})).merge({ admins })
@@ -304,26 +336,26 @@ export const setAdmins = (state, { groupId, admins }) => {
 
 /**
  * add or remove one user against admin list of group
- * 
- * @param {any} state 
- * @param {any} { groupId, admin, operation } 
- * @returns 
+ *
+ * @param {any} state
+ * @param {any} { groupId, admin, operation }
+ * @returns
  */
 export const operateAdmin = (state, { groupId, admin, operation }) => {
     let admins = state.getIn([ groupId, 'admins' ], Immutable([])).asMutable()
     operation === 'add'
-        ? admins = _.uniq(_.concat(admins, admin))
-        : admins = _.without(admins, admin)
+        ? (admins = _.uniq(_.concat(admins, admin)))
+        : (admins = _.without(admins, admin))
     const group = state.getIn([ groupId ]).merge({ admins })
     return state.merge({ [groupId]: group })
 }
 
 /**
  * save all members in muted list of group
- * 
- * @param {any} state 
- * @param {any} { groupId, muted } 
- * @returns 
+ *
+ * @param {any} state
+ * @param {any} { groupId, muted }
+ * @returns
  */
 export const setMuted = (state, { groupId, muted }) => {
     const byName = _.chain(muted)
@@ -332,14 +364,16 @@ export const setMuted = (state, { groupId, muted }) => {
             return acc
         }, {})
         .value()
-    const group = state.getIn([ groupId ], Immutable({})).merge({ muted: { byName } })
+    const group = state
+        .getIn([ groupId ], Immutable({}))
+        .merge({ muted: { byName } })
     return state.merge({ [groupId]: group })
 }
 
 /**
  * add or remove one user against muted list
- * 
- * @param {*} state 
+ *
+ * @param {*} state
  * @param {String|Number} groupId
  * @param {Array[Object]} muted
  * @param {Number} muted[].expire
@@ -350,19 +384,22 @@ export const setMuted = (state, { groupId, muted }) => {
 export const operateMuted = (state, { groupId, muted, operation }) => {
     let byName = state.getIn([ groupId, 'muted', 'byName' ], Immutable({}))
     operation === 'add'
-        ? _.forEach(muted, val => (byName = byName.merge({ [val.user]: _.omit(val, 'result') })))
-        : _.forEach(muted, val => (byName = byName.without(val.user)))
+        ? _.forEach(
+            muted,
+            (val) => (byName = byName.merge({ [val.user]: _.omit(val, 'result') }))
+        )
+        : _.forEach(muted, (val) => (byName = byName.without(val.user)))
     return state.setIn([ groupId, 'muted', 'byName' ], byName)
 }
 
 /**
  * save all members in blacklist of group
- * 
- * @param {*} state 
- * @param {Object} group 
+ *
+ * @param {*} state
+ * @param {Object} group
  * @param {Number} group.groupId
  * @param {Array[String]} group.blackList
- * @returns 
+ * @returns
  */
 export const setBlacklist = (state, { groupId, blacklist }) => {
     return state.setIn([ groupId, 'blacklist' ], blacklist)
@@ -370,27 +407,29 @@ export const setBlacklist = (state, { groupId, blacklist }) => {
 
 /**
  * add or remove one user against blacklist
- * 
- * @param {any} state 
+ *
+ * @param {any} state
  * @param {String|Number} groupId
  * @param {String} username
  * @param {String} operation - 'add' or 'del'
  * @returns new state
  */
 export const operateBlacklist = (state, { groupId, username, operation }) => {
-    let blacklist = state.getIn([ groupId, 'blacklist' ], Immutable([])).asMutable()
+    let blacklist = state
+        .getIn([ groupId, 'blacklist' ], Immutable([]))
+        .asMutable()
     operation === 'add'
         ? blacklist.push(username)
-        : blacklist = _.without(blacklist, username)
+        : (blacklist = _.without(blacklist, username))
     const group = state.getIn([ groupId ]).merge({ blacklist })
     return state.merge({ [groupId]: group })
 }
 
 /**
  * save all members of group
- * 
- * @param {*} state 
- * @param {String|Number} groupId 
+ *
+ * @param {*} state
+ * @param {String|Number} groupId
  * @param {Array[Object]} members
  * @param {String|null} members[].member
  * @param {String|null} members[].owner
@@ -400,23 +439,25 @@ export const setGroupMember = (state, { groupId, members }) => {
     const byName = _.reduce(
         members,
         (acc, val) => {
-            const { member, owner, info } = val
+            const { member, owner, info, groupInfo } = val
             const name = member || owner
             const affiliation = owner ? 'owner' : 'member'
-            acc[name] = { name, affiliation, info}
+            acc[name] = { name, affiliation, info, groupInfo }
             return acc
         },
         {}
     )
-    const group = state.getIn([ groupId ], Immutable({})).merge({ byName, names: Object.keys(byName).sort() })
+    const group = state
+        .getIn([ groupId ], Immutable({}))
+        .merge({ byName, names: Object.keys(byName).sort() })
     return state.merge({ [groupId]: group })
 }
 
 /**
  * add or remove one member of group
  * NOTE: current only support DELETE operation
- * 
- * @param {any} state 
+ *
+ * @param {any} state
  * @param {String|Number} groupId
  * @param {String} username
  * @param {String} operation - ONLY 'del' currently
