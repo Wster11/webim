@@ -172,7 +172,7 @@ class DefaultLayout extends Component {
         }
 
 
-        if (selectTab === "contact") {
+        if (selectTab === 'contact') {
             this.props.sendChannel({
                 from: WebIM.conn.context.jid.name,
                 to: e.key,
@@ -213,10 +213,10 @@ class DefaultLayout extends Component {
             // join chatroom
             this.props.joinChatRoom(e.key)
             this.props.sendChannel({
-                    from: WebIM.conn.context.jid.name,
-                    to: e.key,
-                    type: 'chatroom'
-                })
+                from: WebIM.conn.context.jid.name,
+                to: e.key,
+                type: 'chatroom'
+            })
         }
 
         history.push(redirectPath + location.search)
@@ -356,7 +356,7 @@ class DefaultLayout extends Component {
 
     render() {
         const { collapsed, selectTab, selectItem, headerTabs, roomId } = this.state
-        const { login, rightSiderOffset, entities, group, callVideo} = this.props
+        const { login, rightSiderOffset, entities, group, callVideo } = this.props
         const room = _.get(group, `byId.${roomId}`, {})
 
         let { confr, callStatus, minisize } = callVideo
@@ -375,7 +375,7 @@ class DefaultLayout extends Component {
             receivedAnswerCall: 6,
             confirmCallee: 7
         }
-        let showConfr = (confr.type === 2 && [status.idle,status.confirmRing,status.answerCall,status.receivedAnswerCall,status.confirmCallee].includes(callStatus)) ? true: false
+        let showConfr = (confr.type === 2 && [ status.idle,status.confirmRing,status.answerCall,status.receivedAnswerCall,status.confirmCallee ].includes(callStatus)) ? true: false
 
         let showAlert = callStatus == 4
         let multiAVModal = showConfr ? <MultiAVModal/> : null
@@ -455,9 +455,9 @@ class DefaultLayout extends Component {
                      Ant Design ©2016 Created by Ant UED
                      </Footer>*/}
 
-                     {alertModal}
-                     {miniModal}
-                     <ModalComponent
+                    {alertModal}
+                    {miniModal}
+                    <ModalComponent
                         width={360}
                         title="个人名片"
                         visible={this.state.showUserInfoMoadl}

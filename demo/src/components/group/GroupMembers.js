@@ -1,20 +1,63 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import Immutable from 'seamless-immutable'
-import { Card, Icon, Menu, Popconfirm, Table, Tooltip, Dropdown } from 'antd'
+import {
+    Card,
+    Icon,
+    Popconfirm,
+    Table,
+    Tooltip,
+    Modal,
+    Input,
+    message
+} from 'antd'
+import { withRouter } from 'react-router-dom'
 import _ from 'lodash'
 import { I18n } from 'react-redux-i18n'
-import GroupActions from '@/redux/GroupRedux'
 import GroupMemberActions from '@/redux/GroupMemberRedux'
 import './style/index.less'
+import WebIM from '../../config/WebIM'
 
 const iconStyle = { fontSize: 16, marginRight: 15 }
 
 class GroupMembers extends React.Component {
-    componentDidMount() {
-        const { login, roomId, groupMember } = this.props
-        this.props.listGroupMemberAsync({ groupId: roomId })
+    constructor(props) {
+        super(props)
+
+        this.state = {
+            visible: false,
+            nickName: '',
+            currentNickName: ''
+        }
     }
+  unListen = null;
+
+  componentDidMount() {
+      this.getUserAttrs()
+      this.unListen = this.props.history.listen((location) => {
+          if (this.props.location.pathname !== location.pathname) {
+              setTimeout(() => {
+                  this.getUserAttrs()
+              }, 0)
+          }
+      })
+  }
+
+  componentWillUnmount() {
+      this.unListen && this.unListen()
+  }
+
+  getUserAttrs = async () => {
+      const { roomId } = this.props
+      let res = await WebIM.conn.getMemberAttributes({
+          userId: WebIM.conn.user,
+          groupId: roomId,
+          keys: [ 'nickName' ]
+      })
+      this.setState({
+          currentNickName: res.data.nickName
+      })
+  };
+  
   setAdmin = (groupId, name) => this.props.setAdminAsync(groupId, name);
 
   removeAdmin = (groupId, name) => this.props.removeAdminAsync(groupId, name);
@@ -29,8 +72,42 @@ class GroupMembers extends React.Component {
   removeSingleGroupMember = (groupId, name) =>
       this.props.removeSingleGroupMemberAsync(groupId, name);
 
+  showModal = () => {
+      this.setState({
+          visible: true
+      })
+  };
+
+  hideModal = () => {
+      this.setState({
+          visible: false
+      })
+  };
+
+  handleOk = ({ userId = '' }) => {
+      const { nickName } = this.state
+      let opt = {
+          groupId: this.props.roomId,
+          userId,
+          key: 'nickName',
+          value: nickName
+      }
+      WebIM.conn
+          .setMemberAttribute(opt)
+          .then((res) => {
+              message.success('修改我的群昵称成功')
+              this.setState({
+                  currentNickName: nickName
+              })
+          })
+          .catch((e) => {
+              message.error('修改我的群昵称失败')
+          })
+  };
+
   render() {
       const { login, roomId, groupMember } = this.props
+      const { visible, nickName } = this.state
       // const memberActionMenu = (
       //     <Menu>
       //         <Menu.Item key="1">
@@ -49,7 +126,6 @@ class GroupMembers extends React.Component {
       const admins = _.get(groupMember, `${roomId}.admins`, [])
       const muted = _.get(groupMember, `${roomId}.muted`, [])
       const data = _.map(members, (val, key) => {
-          console.log(val)
           const { affiliation, info, name, groupInfo } = val
           if (affiliation.toLowerCase() === 'owner') {
               owner = key.toLowerCase()
@@ -60,7 +136,7 @@ class GroupMembers extends React.Component {
           const isAdmin = _.includes(admins, key)
           const isMuted = _.includes(muted, key)
           return {
-              name: groupInfo?.nickname || info.nickname || val.name,
+              name: groupInfo?.nickName || info.nickname || val.name,
               key,
               affiliation,
               isAdmin,
@@ -164,24 +240,56 @@ class GroupMembers extends React.Component {
           }
       ]
       return (
-          <Card
-              title={I18n.t('members')}
-              bordered={false}
-              noHovering={true}
-              className="group-member-wrapper"
-          >
-              {/* <Menu className="group-member-list">
-                    {members.map((val, idx) => <Menu.Item key={idx} className="group-member-item"><span>{val+'sss'}</span></Menu.Item>)}
-                </Menu> */}
-              <Table
-                  columns={columns}
-                  dataSource={data}
-                  showHeader={false}
-                  pagination={false}
-                  scroll={{ y: 300 }}
-                  className="group-member-list"
-              />
-          </Card>
+          <>
+              <Card
+                  title="我在群里的昵称"
+                  extra={
+                      <div
+                          onClick={() => {
+                              this.showModal()
+                          }}
+                          style={{ cursor: 'pointer' }}
+                      >
+                          <Icon type="edit" />
+                      </div>
+                  }
+              >
+                  <span>{this.state.currentNickName} </span>
+                  <Modal
+                      visible={visible}
+                      onCancel={this.hideModal}
+                      cancelText="取消"
+                      okText="确认"
+                      title="编辑我的群昵称"
+                      onOk={() => {
+                          this.handleOk({ userId: currentUser })
+                      }}
+                  >
+                      <Input
+                          value={nickName}
+                          onChange={(e) => {
+                              this.setState({ nickName: e.target.value })
+                          }}
+                          placeholder="请输入我的群昵称"
+                      ></Input>
+                  </Modal>
+              </Card>
+              <Card
+                  title={I18n.t('members')}
+                  bordered={false}
+                  noHovering={true}
+                  className="group-member-wrapper"
+              >
+                  <Table
+                      columns={columns}
+                      dataSource={data}
+                      showHeader={false}
+                      pagination={false}
+                      scroll={{ y: 300 }}
+                      className="group-member-list"
+                  />
+              </Card>
+          </>
       )
   }
 }
@@ -207,4 +315,4 @@ export default connect(
         removeSingleGroupMemberAsync: (groupId, name) =>
             dispatch(GroupMemberActions.removeSingleGroupMemberAsync(groupId, name))
     })
-)(GroupMembers)
+)(withRouter(GroupMembers))

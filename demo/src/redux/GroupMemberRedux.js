@@ -87,22 +87,23 @@ const { Types, Creators } = createActions({
                 groupId,
                 pageNum,
                 pageSize,
-                success: (response) => {
+                success: async (response) => {
                     const members = response.data
                     let memberNames = members.map((item) => {
                         return item.member || item.owner
                     })
-                    WebIM.conn.fetchUserInfoById(memberNames).then((res) => {
-                        let infos = res.data
-                        console.log(infos, 'infos')
-                        members.forEach((item) => {
-                            item.info = infos[item.member || item.owner]
-                            item.groupInfo = {
-                                nickname: '群昵称'
-                            }
-                        })
-                        dispatch(Creators.setGroupMember(groupId, members))
+                    let userAttrs = await WebIM.conn.fetchUserInfoById(memberNames)
+                    let groupMemberAttr = await WebIM.conn.getMembersAttributes({
+                        groupId,
+                        userIdList: memberNames,
+                        keys: [ 'nickName' ]
                     })
+                    members.forEach((item) => {
+                        item.info = userAttrs?.data?.[item.member || item.owner]
+                        console.log(groupMemberAttr?.data?.[item.member || item.owner])
+                        item.groupInfo = groupMemberAttr?.data?.[item.member || item.owner]
+                    })
+                    dispatch(Creators.setGroupMember(groupId, members))
                 },
                 error: (e) => console.log(e.message)
             })
