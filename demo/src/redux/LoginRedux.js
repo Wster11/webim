@@ -19,20 +19,15 @@ const { Types, Creators } = createActions({
     loginFailure: [ 'error' ],
     jumpRegister: null,
     logout: null,
-    setOwnInfo: ['info'],
+    setOwnInfo: [ 'info' ],
     // ------------- async -----------------
 
     login: (username, password) => {
         return (dispatch, getState) => {
             dispatch(Creators.setLoging(username, password, null))
-            console.log(WebIM, 'WebIM')
-            // if (WebIM.conn.isOpened()) {
-            //     WebIM.conn.close("logout")
-            // }
             let options = {
-                user: username.trim().toLowerCase(),
+                user: username?.trim().toLowerCase(),
                 pwd: password,
-                 // accessToken: password,
                 appKey: WebIM.config.appkey,
                 success(token) {
                     let I18N = store.getState().i18n.translations[store.getState().i18n.locale]
@@ -47,7 +42,7 @@ const { Types, Creators } = createActions({
             }
 
             if (WebIM.config.isSandBox) {
-                options.apiUrl = WebIM.config.restServer;
+                options.apiUrl = WebIM.config.restServer
             }
 
             WebIM.conn.open(options)
@@ -84,43 +79,43 @@ const { Types, Creators } = createActions({
                 phoneNumber: phoneNumber,
                 smsCode: smsCode
             })
-            .then(function (response) {
-                console.log(response);
-                const {token} = response.data
-                let I18N = store.getState().i18n.translations[store.getState().i18n.locale]
-                message.success(I18N.loginSuccessfully, 1)
-                dispatch(Creators.setLoginToken(phoneNumber, token))
-                dispatch(Creators.setLoginSuccess(phoneNumber))
-                window.localStorage.setItem('webImLogout', true)
+                .then(function (response) {
+                    console.log(response)
+                    const { token } = response.data
+                    let I18N = store.getState().i18n.translations[store.getState().i18n.locale]
+                    message.success(I18N.loginSuccessfully, 1)
+                    dispatch(Creators.setLoginToken(phoneNumber, token))
+                    dispatch(Creators.setLoginSuccess(phoneNumber))
+                    window.localStorage.setItem('webImLogout', true)
 
-                dispatch(Creators.loginByToken(phoneNumber, token))
-            })
-            .catch(function (error) {
-                switch (error.response.data.errorInfo) {
-                    case "UserId password error.":
+                    dispatch(Creators.loginByToken(phoneNumber, token))
+                })
+                .catch(function (error) {
+                    switch (error.response.data.errorInfo) {
+                    case 'UserId password error.':
                         message.error('用户名或密码错误！')
-                        break;
+                        break
                     case `UserId ${phoneNumber} does not exist.`:
                         message.error('登录用户不存在')
-                        break;
+                        break
                     case 'phone number illegal':
                         message.error('请输入正确的手机号')
-                        break;
+                        break
                     case 'SMS verification code error.':
                         message.error('验证码错误')
-                        break;
+                        break
                     case 'Sms code cannot be empty':
                         message.error('验证码不能为空')
-                        break;
+                        break
                     case 'Please send SMS to get mobile phone verification code.':
                         message.error('请使用短信验证码登录')
-                        break;
+                        break
                     default:
                         message.error('登录失败，请重试！')
-                        break;
-                }
-                dispatch(Creators.stopLoging())
-            });
+                        break
+                    }
+                    dispatch(Creators.stopLoging())
+                })
         }
     },
 })
