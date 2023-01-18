@@ -59,12 +59,10 @@ class GroupInfo extends React.Component {
         }
     }
 
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.room.groupId != this.props.room.groupId) {
+    componentWillReceiveProps(nextProps){
+        if(nextProps.room.groupId !== this.props.room.groupId){
             this.props.newGetGroupInfoAsync(nextProps.room.groupId)
-            return true
         }
-        return false
     }
 
     componentDidMount() {
