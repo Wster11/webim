@@ -27,7 +27,7 @@ import AddAVMemberModal from '@/components/videoCall/AddAVMemberModal'
 import ModalComponent from '@/components/common/ModalComponent'
 import RecordAudio from '@/components/recorder/index'
 import UserInfoModal from '@/components/contact/UserInfoModal'
-const rtc = WebIM.rtc;
+const rtc = WebIM.rtc
 const { TextArea } = Input
 const FormItem = Form.Item
 const { PAGE_NUM } = config
@@ -317,7 +317,7 @@ class Chat extends React.Component {
         } = this.props
         const { selectItem, selectTab } = match.params
         const value = '邀请您进行视频通话'
-        const callId = WebIM.conn.getUniqueId().toString();
+        const callId = WebIM.conn.getUniqueId().toString()
         const channelName = Math.uuid(8)
         if (selectTab === 'contact') {
             this.props.sendTxtMessage(chatType[selectTab], selectItem, {
@@ -378,7 +378,7 @@ class Chat extends React.Component {
         const { selectItem, selectTab } = match.params
         const value = '邀请您进行语音通话'
 
-        const callId = WebIM.conn.getUniqueId().toString();
+        const callId = WebIM.conn.getUniqueId().toString()
         const channelName = Math.uuid(8)
         this.props.sendTxtMessage(chatType[selectTab], selectItem, {
             msg: value,
@@ -458,8 +458,8 @@ class Chat extends React.Component {
 
     onChange = e => {
         this.setState({
-          checkedValue: e.target.value,
-        });
+            checkedValue: e.target.value,
+        })
     };
 
     sendIdCardMsg = async ()=>{
@@ -484,7 +484,7 @@ class Chat extends React.Component {
             avatar: info.avatarurl || ''
         }
         this.props.sendCustomMsg(chatType, selectItem, msg)
-         this.setState({
+        this.setState({
             visible: false
         })
     }
@@ -566,7 +566,7 @@ class Chat extends React.Component {
                 display: 'block',
                 height: '30px',
                 lineHeight: '30px',
-            };
+            }
 
             const container = {
                 height: '150px',
@@ -580,7 +580,7 @@ class Chat extends React.Component {
             users.forEach((item, index) => {
                 list.push(
                     <Radio style={radioStyle} value={item} key={item}>
-                      {withInfoUsers[item]?.info?.nickname || item}
+                        {withInfoUsers[item]?.info?.nickname || item}
                     </Radio>
                 )
             })
@@ -599,21 +599,21 @@ class Chat extends React.Component {
         return (
             <div className="x-chat">
                 <div className="x-list-item x-chat-header">
-                {collapsed
-                            ? <Icon
-                                type="arrow-left"
-                                onClick={back}
-                                style={{
-                                    cursor: 'pointer',
-                                    fontSize: 20,
-                                    verticalAlign: 'middle',
-                                    marginRight: 10,
-                                    float: 'left',
-                                    lineHeight: '50px'
-                                }}
-                            />
-                            : null}
-                    <div className={`fl ${isShowDeleteGroupNotice?"notice":''}`}>
+                    {collapsed
+                        ? <Icon
+                            type="arrow-left"
+                            onClick={back}
+                            style={{
+                                cursor: 'pointer',
+                                fontSize: 20,
+                                verticalAlign: 'middle',
+                                marginRight: 10,
+                                float: 'left',
+                                lineHeight: '50px'
+                            }}
+                        />
+                        : null}
+                    <div className={`fl ${isShowDeleteGroupNotice?'notice':''}`}>
                         
                         <span>{name}</span>
                         {isShowDeleteGroupNotice ?<span>该群仅供试用，72小时后将被删除</span>: ''}
@@ -698,7 +698,7 @@ class Chat extends React.Component {
                             visible={this.state.visible}
                             onVisibleChange={this.handleHoverChange}
                         >
-                            <Icon type="idcard" style={{padding:'0 15px'}} className="icon iconfont icon-trash"/>
+                            <Icon type="idcard" style={{ padding:'0 15px' }} className="icon iconfont icon-trash"/>
                         </Popover>
                     </div>
                     <div className="x-list-item x-chat-send">

@@ -415,7 +415,7 @@ class DefaultLayout extends Component {
                             left: selectItem && collapsed ? '-100%' : 0
                         }}
                     >
-                        <Contact collapsed={false} onClickAvatar={this.onClickAvatar.bind(this, selectItem)} onClick={this.changeItem} selectedKeys={[ selectItem ]}
+                        <Contact onClick={this.changeItem} selectedKeys={[ selectItem ]}
                         />
                     </div>
                     <div className="x-layout-video"
