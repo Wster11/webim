@@ -615,6 +615,30 @@ WebIM.conn.listen({
     }
 })
 
+WebIM.conn.addEventHandler("groupEvent", {
+    onGroupEvent: ({ from, id, attributes, operation }) => {
+      let dt = store.getState().entities.groupMember[id]?.byName;
+      if (dt) {
+        let membersInfoList = JSON.parse(JSON.stringify(dt));
+        // 如果存在
+        let memberAttrs = membersInfoList?.[from].groupInfo;
+        membersInfoList[from].groupInfo = {
+          ...memberAttrs,
+          ...attributes
+        };
+        let memberList = Object.values(membersInfoList).map((item) => {
+          return {
+            [item.affiliation]: item.name,
+            ...item
+          };
+        });
+        if (operation === "memberAttributesUpdate") {
+          store.dispatch(GroupMemberActions.setGroupMember(id, memberList));
+        }
+      }
+    }
+});
+
 /* ------------- Types and Action Creators ------------- */
 
 const { Types, Creators } = createActions({

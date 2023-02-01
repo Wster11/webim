@@ -16,7 +16,8 @@ var config = {
    */
     socketServer:
     (window.location.protocol === 'https:' ? 'https:' : 'http:') +
-    '//im-api-v2-hsb.easemob.com/ws',
+    // '//im-api-v2-hsb.easemob.com/ws',
+    '//msync-api-a1-test.easemob.com/ws',
     /*
    * Backend REST API URL
    * a1.easemob.com 线上环境
@@ -24,7 +25,8 @@ var config = {
    */
     restServer:
     (window.location.protocol === 'https:' ? 'https:' : 'http:') +
-    '//a1-hsb.easemob.com',
+    // '//a1-hsb.easemob.com',
+    '//a1-test.easemob.com',
     /*
    * Application AppKey
    */
