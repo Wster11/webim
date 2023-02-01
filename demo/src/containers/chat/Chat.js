@@ -456,6 +456,18 @@ class Chat extends React.Component {
         })
     }
 
+    getFromNick = (selectTab, userinfos, message) => {
+        if (selectTab === "contact") {
+          return userinfos;
+        } else {
+            let from = message.from
+            if(!from){
+                from = WebIM.conn.user
+            }
+          return userinfos[from]?.groupInfo?.nickName || userinfos[from]?.info?.nickname || from;
+        }
+    };
+
     onChange = e => {
         this.setState({
             checkedValue: e.target.value,
@@ -638,10 +650,10 @@ class Chat extends React.Component {
                     {_.map(messageList, (message, i) => {
                         if (i > 0) {
                             if (message.id != messageList[i - 1].id) {
-                                return <ChatMessage key={i} fromNick={selectTab=='contact'?userinfos:userinfos[message.from]?.info.nickname} onClickIdCard={this.onClickIdCard} ok={this.ok}{...message} />
+                                return <ChatMessage key={i} fromNick={this.getFromNick(selectTab, userinfos, message)} onClickIdCard={this.onClickIdCard} ok={this.ok}{...message} />
                             }
                         } else {
-                            return <ChatMessage key={i} fromNick={selectTab=='contact'?userinfos:userinfos[message.from]?.info.nickname} onClickIdCard={this.onClickIdCard} ok={this.ok} {...message} />
+                            return <ChatMessage key={i} fromNick={this.getFromNick(selectTab,userinfos,message )} onClickIdCard={this.onClickIdCard} ok={this.ok} {...message} />
                         }
                     })}
                 </div>
