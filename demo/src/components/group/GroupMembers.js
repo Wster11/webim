@@ -286,7 +286,7 @@ class GroupMembers extends React.Component {
             columns={columns}
             dataSource={data}
             showHeader={false}
-            pagination={false}
+            pagination={true}
             scroll={{ y: 300 }}
             className="group-member-list"
           />

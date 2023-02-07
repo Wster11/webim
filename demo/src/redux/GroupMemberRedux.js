@@ -81,8 +81,17 @@ const { Types, Creators } = createActions({
   listGroupMemberAsync: (opt) => {
     let { groupId, pageNum, pageSize } = opt;
     pageNum = pageNum || 1;
-    pageSize = pageSize || 1000;
+    pageSize = pageSize || 10;
     return (dispatch, getState) => {
+      let dt = getState().entities.groupMember[groupId]?.byName || {};
+      let oldMemberIds = Object.keys(dt);
+      let oldMembersInfo = oldMemberIds.map((key) => {
+        return {
+          [dt[key].affiliation]: dt[key].name,
+          info: dt[key].info,
+          groupInfo: dt[key].groupInfo
+        };
+      });
       WebIM.conn
         .listGroupMembers({
           groupId,
@@ -90,21 +99,28 @@ const { Types, Creators } = createActions({
           pageSize
         })
         .then(async (response) => {
-          const members = response.data;
+          const members = response.data.filter((item) => {
+            return !oldMemberIds.includes(item.member || item.owner);
+          });
           let memberNames = members.map((item) => {
             return item.member || item.owner;
           });
-          let userAttrs = await WebIM.conn.fetchUserInfoById(memberNames);
-          let groupMemberAttr = await WebIM.conn.getMembersAttributes({
-            groupId,
-            userIdList: memberNames,
-            keys: ["nickName"]
-          });
-          members.forEach((item) => {
-            item.info = userAttrs?.data?.[item.member || item.owner];
-            item.groupInfo = groupMemberAttr?.data?.[item.member || item.owner];
-          });
-          dispatch(Creators.setGroupMember(groupId, members));
+          if (members.length) {
+            let userAttrs = await WebIM.conn.fetchUserInfoById(memberNames);
+            let groupMemberAttr = await WebIM.conn.getMembersAttributes({
+              groupId,
+              userIdList: memberNames,
+              keys: ["nickName"]
+            });
+            members.forEach((item) => {
+              item.info = userAttrs?.data?.[item.member || item.owner];
+              item.groupInfo =
+                groupMemberAttr?.data?.[item.member || item.owner];
+            });
+            dispatch(
+              Creators.setGroupMember(groupId, [...members, ...oldMembersInfo])
+            );
+          }
         })
         .catch((e) => {
           console.log(e);
