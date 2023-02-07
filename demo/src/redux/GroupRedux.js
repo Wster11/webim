@@ -184,14 +184,14 @@ export const updateGroup = (state, { groups }) => {
 }
 
 export const newGetGroupInfo = (state, { response }) => {
-    let allowinvites
-    let custom
-    response.data.map((v, i) => {
-        custom = v.custom
-        return allowinvites = v.allowinvites
-    })
-    return state.merge({ allowinvites:allowinvites, currentGroupCustom:custom })
-}
+    let dt = response.data[0] || {};
+    return state.merge({
+      allowinvites: dt.allowinvites,
+      membersTotal: dt.affiliations_count,
+      owner: dt.owner,
+      currentGroupCustom: dt.custom
+    });
+};
 /**
  * 
  * @param {*} state 

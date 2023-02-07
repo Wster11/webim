@@ -79,9 +79,9 @@ const { Types, Creators } = createActions({
     };
   },
   listGroupMemberAsync: (opt) => {
-    let { groupId, pageNum, pageSize } = opt;
+    let { groupId, pageNum, pageSize, success } = opt;
     pageNum = pageNum || 1;
-    pageSize = pageSize || 10;
+    pageSize = pageSize || 1;
     return (dispatch, getState) => {
       let dt = getState().entities.groupMember[groupId]?.byName || {};
       let oldMemberIds = Object.keys(dt);
@@ -118,9 +118,10 @@ const { Types, Creators } = createActions({
                 groupMemberAttr?.data?.[item.member || item.owner];
             });
             dispatch(
-              Creators.setGroupMember(groupId, [...members, ...oldMembersInfo])
+              Creators.setGroupMember(groupId, [...oldMembersInfo, ...members])
             );
           }
+          success?.()
         })
         .catch((e) => {
           console.log(e);
@@ -468,7 +469,7 @@ export const setGroupMember = (state, { groupId, members }) => {
   );
   const group = state
     .getIn([groupId], Immutable({}))
-    .merge({ byName, names: Object.keys(byName).sort() });
+    .merge({ byName, names: Object.keys(byName) });
   return state.merge({ [groupId]: group });
 };
 

@@ -167,16 +167,9 @@ class GroupInfo extends React.Component {
       this.props.removeGroupBlockSingleAsync(this.props.room.groupId, user);
 
   renderGroupOperationMenu = () => {
-      const { login, groupMember, room } = this.props
-      const user = _.get(
-          groupMember,
-          [ room.groupId, 'byName', _.get(login, 'username').toLowerCase() ],
-          {
-              name: null,
-              affiliation: null
-          }
-      )
-      const isAdmin = user.affiliation === 'owner'
+      const { login, group } = this.props
+      const currentUser = _.get(login, 'username', '')
+      let isAdmin = currentUser.toLowerCase() === group.owner
       // TOOD 代码结构需优化
       if (isAdmin) {
           return (

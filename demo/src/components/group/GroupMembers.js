@@ -17,6 +17,8 @@ import GroupMemberActions from "@/redux/GroupMemberRedux";
 import "./style/index.less";
 import WebIM from "../../config/WebIM";
 
+const PAGE_SIZE = 1;
+
 const iconStyle = { fontSize: 16, marginRight: 15 };
 
 class GroupMembers extends React.Component {
@@ -26,7 +28,8 @@ class GroupMembers extends React.Component {
     this.state = {
       visible: false,
       nickName: "",
-      currentNickName: ""
+      currentNickName: "",
+      current: 1 // 当前页数
     };
   }
   unListen = null;
@@ -37,6 +40,9 @@ class GroupMembers extends React.Component {
       if (this.props.location.pathname !== location.pathname) {
         setTimeout(() => {
           this.getUserAttrs();
+          this.setState({
+            current: 1
+          });
         }, 0);
       }
     });
@@ -55,6 +61,19 @@ class GroupMembers extends React.Component {
     });
     this.setState({
       currentNickName: res.data.nickName
+    });
+  };
+
+  onChange = ({ current }) => {
+    const { roomId } = this.props;
+    this.props.listGroupMemberAsync({
+      groupId: roomId,
+      pageNum: current,
+      success: () => {
+        this.setState({
+          current
+        });
+      }
     });
   };
 
@@ -108,8 +127,8 @@ class GroupMembers extends React.Component {
   };
 
   render() {
-    const { login, roomId, groupMember } = this.props;
-    const { visible, nickName } = this.state;
+    const { login, roomId, groupMember, groupInfo } = this.props;
+    const { visible, nickName, current } = this.state;
     // const memberActionMenu = (
     //     <Menu>
     //         <Menu.Item key="1">
@@ -122,19 +141,13 @@ class GroupMembers extends React.Component {
     //     </Menu>
     // )
     let owner;
-    let isOwner = false;
     const currentUser = _.get(login, "username", "");
+    let isOwner = currentUser.toLowerCase() === groupInfo.owner;
     const members = _.get(groupMember, `${roomId}.byName`, []);
     const admins = _.get(groupMember, `${roomId}.admins`, []);
     const muted = _.get(groupMember, `${roomId}.muted`, []);
     const data = _.map(members, (val, key) => {
       const { affiliation, info, name, groupInfo } = val;
-      if (affiliation.toLowerCase() === "owner") {
-        owner = key.toLowerCase();
-        if (key === currentUser.toLowerCase()) {
-          isOwner = true;
-        }
-      }
       const isAdmin = _.includes(admins, key);
       const isMuted = _.includes(muted, key);
       return {
@@ -145,7 +158,7 @@ class GroupMembers extends React.Component {
         isMuted,
         id: name
       };
-    });
+    }).slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
     const columns = [
       {
         title: "Name",
@@ -286,7 +299,12 @@ class GroupMembers extends React.Component {
             columns={columns}
             dataSource={data}
             showHeader={false}
-            pagination={true}
+            onChange={this.onChange}
+            pagination={{
+              current,
+              pageSize: PAGE_SIZE,
+              total: groupInfo.membersTotal
+            }}
             scroll={{ y: 300 }}
             className="group-member-list"
           />
@@ -299,7 +317,8 @@ class GroupMembers extends React.Component {
 export default connect(
   ({ entities, login }) => ({
     login,
-    groupMember: entities.groupMember
+    groupMember: entities.groupMember,
+    groupInfo: entities.group
   }),
   (dispatch) => ({
     listGroupMemberAsync: (opt) =>
