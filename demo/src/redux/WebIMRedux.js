@@ -636,6 +636,16 @@ WebIM.conn.addEventHandler("groupEvent", {
           store.dispatch(GroupMemberActions.setGroupMember(id, memberList));
         }
       }
+    },
+    onMultiDeviceEvent:({from, id, operation})=>{
+        let dt = store.getState().entities.group
+        // 如果在当前群组则更新
+        if(dt?.currentId === id){
+            if(operation === 'memberAttributesUpdate') {
+                store.dispatch(GroupActions.getUserAttrs(id));
+            }
+        }
+       
     }
 });
 

@@ -23,6 +23,7 @@ const { Types, Creators } = createActions({
     switchRightSider: [ 'width' ],
     topGroup: [ 'groupId' ],
     newGetGroupInfo: [ 'response' ],
+    setUserGroupAttrs: ['response'],
     // ---------------async------------------
     createGroups: options => {
         return (dispatch, getState) => {
@@ -123,10 +124,23 @@ const { Types, Creators } = createActions({
             WebIM.conn.getGroupInfo({
                 groupId: groupId,
                 success: response => {
+                    response.groupId = groupId
                     dispatch(Creators.newGetGroupInfo(response))
                 },
                 error: e => console.log(e)
             })
+        }
+    },
+    getUserAttrs:  groupId => {
+        return (dispatch, getState) => {
+            WebIM.conn.getMemberAttributes({
+                userId: WebIM.conn.user,
+                groupId: groupId,
+            }).then((res)=>{
+                dispatch(Creators.setUserGroupAttrs(res.data))
+            }).catch((e)=>{
+                console.log(e)
+            })   
         }
     }
 })
@@ -189,7 +203,14 @@ export const newGetGroupInfo = (state, { response }) => {
       allowinvites: dt.allowinvites,
       membersTotal: dt.affiliations_count,
       owner: dt.owner,
-      currentGroupCustom: dt.custom
+      currentGroupCustom: dt.custom,
+      currentId: response.groupId
+    });
+};
+
+export const setUserGroupAttrs = (state, { response }) => {
+    return state.merge({
+     userAttrs: response || {}
     });
 };
 /**
@@ -260,7 +281,9 @@ export const reducer = createReducer(INITIAL_STATE, {
     [Types.DISSOLVE_GROUP]: dissolveGroup,
     [Types.SWITCH_RIGHT_SIDER]: switchRightSider,
     [Types.TOP_GROUP]: topGroup,
-    [Types.NEW_GET_GROUP_INFO]: newGetGroupInfo
+    [Types.NEW_GET_GROUP_INFO]: newGetGroupInfo,
+    [Types.SET_USER_GROUP_ATTRS]: setUserGroupAttrs,
+    
 })
 
 /* ------------- Selectors ------------- */

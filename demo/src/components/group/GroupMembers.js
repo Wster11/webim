@@ -14,6 +14,7 @@ import { withRouter } from "react-router-dom";
 import _ from "lodash";
 import { I18n } from "react-redux-i18n";
 import GroupMemberActions from "@/redux/GroupMemberRedux";
+import GroupRedux from "@/redux/GroupRedux";
 import "./style/index.less";
 import WebIM from "../../config/WebIM";
 
@@ -35,11 +36,11 @@ class GroupMembers extends React.Component {
   unListen = null;
 
   componentDidMount() {
-    this.getUserAttrs();
+    this.props.getUserAttrs(this.props.roomId);
     this.unListen = this.props.history.listen((location) => {
       if (this.props.location.pathname !== location.pathname) {
         setTimeout(() => {
-          this.getUserAttrs();
+          this.props.getUserAttrs(this.props.roomId);
           this.setState({
             current: 1
           });
@@ -51,18 +52,6 @@ class GroupMembers extends React.Component {
   componentWillUnmount() {
     this.unListen && this.unListen();
   }
-
-  getUserAttrs = async () => {
-    const { roomId } = this.props;
-    let res = await WebIM.conn.getMemberAttributes({
-      userId: WebIM.conn.user,
-      groupId: roomId,
-      keys: ["nickName"]
-    });
-    this.setState({
-      currentNickName: res.data.nickName
-    });
-  };
 
   onChange = ({ current }) => {
     const { roomId } = this.props;
@@ -269,7 +258,7 @@ class GroupMembers extends React.Component {
             </div>
           }
         >
-          <span>{this.state.currentNickName} </span>
+          <span>{groupInfo?.userAttrs?.nickName} </span>
           <Modal
             visible={visible}
             onCancel={this.hideModal}
@@ -321,6 +310,8 @@ export default connect(
     groupInfo: entities.group
   }),
   (dispatch) => ({
+    getUserAttrs: (groupId) =>
+      dispatch(GroupRedux.getUserAttrs(groupId)),
     listGroupMemberAsync: (opt) =>
       dispatch(GroupMemberActions.listGroupMemberAsync(opt)),
     setAdminAsync: (groupId, name) =>
