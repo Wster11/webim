@@ -121,11 +121,35 @@ const { Types, Creators } = createActions({
               Creators.setGroupMember(groupId, [...oldMembersInfo, ...members])
             );
           }
-          success?.()
+          success?.();
         })
         .catch((e) => {
           console.log(e);
         });
+    };
+  },
+  updateGroupMemberList: (opt) => {
+    const { from, id, attributes } = opt;
+    return (dispatch, getState) => {
+      let dt = getState().entities.groupMember[id]?.byName;
+      if (dt) {
+        let membersInfoList = JSON.parse(JSON.stringify(dt));
+        // 如果存在
+        let memberAttrs = membersInfoList?.[from]?.groupInfo;
+        if (memberAttrs) {
+          membersInfoList[from].groupInfo = {
+            ...memberAttrs,
+            ...attributes
+          };
+          let memberList = Object.values(membersInfoList).map((item) => {
+            return {
+              [item.affiliation]: item.name,
+              ...item
+            };
+          });
+          dispatch(Creators.setGroupMember(id, memberList));
+        }
+      }
     };
   },
   getGroupBlackListAsync: (groupId) => {

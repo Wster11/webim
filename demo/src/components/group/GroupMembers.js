@@ -18,8 +18,6 @@ import GroupRedux from "@/redux/GroupRedux";
 import "./style/index.less";
 import WebIM from "../../config/WebIM";
 
-const PAGE_SIZE = 1;
-
 const iconStyle = { fontSize: 16, marginRight: 15 };
 
 class GroupMembers extends React.Component {
@@ -29,7 +27,6 @@ class GroupMembers extends React.Component {
     this.state = {
       visible: false,
       nickName: "",
-      currentNickName: "",
       current: 1 // 当前页数
     };
   }
@@ -53,14 +50,15 @@ class GroupMembers extends React.Component {
     this.unListen && this.unListen();
   }
 
-  onChange = ({ current }) => {
+  loadMore = () => {
+    const { current } = this.state;
     const { roomId } = this.props;
     this.props.listGroupMemberAsync({
       groupId: roomId,
-      pageNum: current,
+      pageNum: current + 1,
       success: () => {
         this.setState({
-          current
+          current: current + 1
         });
       }
     });
@@ -105,9 +103,18 @@ class GroupMembers extends React.Component {
       .then((res) => {
         message.success("修改我的群昵称成功");
         this.setState({
-          currentNickName: nickName,
           visible: false,
           nickName: ""
+        });
+        this.props.setUserAttrs({
+          nickName
+        });
+        this.props.updateGroupMemberList({
+          from: userId,
+          id: this.props.roomId,
+          attributes: {
+            nickName
+          }
         });
       })
       .catch((e) => {
@@ -147,7 +154,7 @@ class GroupMembers extends React.Component {
         isMuted,
         id: name
       };
-    }).slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+    });
     const columns = [
       {
         title: "Name",
@@ -288,15 +295,15 @@ class GroupMembers extends React.Component {
             columns={columns}
             dataSource={data}
             showHeader={false}
-            onChange={this.onChange}
-            pagination={{
-              current,
-              pageSize: PAGE_SIZE,
-              total: groupInfo.membersTotal
-            }}
+            pagination={false}
             scroll={{ y: 300 }}
             className="group-member-list"
           />
+          {groupInfo.membersTotal > data?.length && (
+            <div className="group-member-load-more" onClick={this.loadMore}>
+              加载更多
+            </div>
+          )}
         </Card>
       </>
     );
@@ -310,10 +317,12 @@ export default connect(
     groupInfo: entities.group
   }),
   (dispatch) => ({
-    getUserAttrs: (groupId) =>
-      dispatch(GroupRedux.getUserAttrs(groupId)),
+    setUserAttrs: (attrs) => dispatch(GroupRedux.setUserGroupAttrs(attrs)),
+    getUserAttrs: (groupId) => dispatch(GroupRedux.getUserAttrs(groupId)),
     listGroupMemberAsync: (opt) =>
       dispatch(GroupMemberActions.listGroupMemberAsync(opt)),
+    updateGroupMemberList: (opt) =>
+      dispatch(GroupMemberActions.updateGroupMemberList(opt)),
     setAdminAsync: (groupId, name) =>
       dispatch(GroupMemberActions.setAdminAsync(groupId, name)),
     removeAdminAsync: (groupId, name) =>
