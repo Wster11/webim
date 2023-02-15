@@ -108,6 +108,9 @@ WebIM.conn.listen({
             message.error(
                 `${msg.from}${I18n.t('LeaveGroup')}${msg.gid}.`
             )
+            if(msg.gid === store.getState().entities.group.currentId){
+                store.dispatch(GroupActions.updateGroupMembersTotal({count: -1}))
+            }
             break
         case 'removedFromGroup':
             message.error(
@@ -168,7 +171,10 @@ WebIM.conn.listen({
             break
         case 'memberJoinPublicGroupSuccess':
             message.success(`${msg.from}${I18n.t('join')}${I18n.t('group')}${msg.gid}${I18n.t('successfully')}`)
-            store.dispatch(GroupMemberActions.listGroupMemberAsync({groupId: msg.gid}))
+            store.dispatch(GroupMemberActions.listGroupMemberAsync({groupId: msg.gid,insert:true, pageSize:1}))
+            if(msg.gid === store.getState().entities.group.currentId){
+                store.dispatch(GroupActions.updateGroupMembersTotal({count: 1}))
+            }
             break
         case 'memberJoinChatRoomSuccess':
             message.success(`${msg.from}${I18n.t('join')}${I18n.t('chatroom')}${msg.gid}${I18n.t('successfully')}`)

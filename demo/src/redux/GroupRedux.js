@@ -24,6 +24,7 @@ const { Types, Creators } = createActions({
     topGroup: [ 'groupId' ],
     newGetGroupInfo: [ 'response' ],
     setUserGroupAttrs: ['response'],
+    updateGroupMembersTotal: ['response'],
     // ---------------async------------------
     createGroups: options => {
         return (dispatch, getState) => {
@@ -213,6 +214,14 @@ export const setUserGroupAttrs = (state, { response }) => {
      userAttrs: response || {}
     });
 };
+
+export const updateGroupMembersTotal = (state, { response }) => {
+    console.log('updateGroupMembersTotal', response)
+    return state.merge({
+        membersTotal: state.membersTotal + response.count
+    });
+};
+
 /**
  * 
  * @param {*} state 
@@ -283,6 +292,7 @@ export const reducer = createReducer(INITIAL_STATE, {
     [Types.TOP_GROUP]: topGroup,
     [Types.NEW_GET_GROUP_INFO]: newGetGroupInfo,
     [Types.SET_USER_GROUP_ATTRS]: setUserGroupAttrs,
+    [Types.UPDATE_GROUP_MEMBERS_TOTAL]: updateGroupMembersTotal
     
 })
 

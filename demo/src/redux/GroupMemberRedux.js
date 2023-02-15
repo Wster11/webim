@@ -62,7 +62,7 @@ const { Types, Creators } = createActions({
         groupId,
         users,
         success: (response) => {
-          dispatch(Creators.listGroupMemberAsync({ groupId: groupId }));
+          dispatch(Creators.listGroupMemberAsync({ groupId: groupId, insert: true, pageSize: 1 }));
         },
         error: (e) => {
           if (e.type === 17) {
@@ -79,9 +79,9 @@ const { Types, Creators } = createActions({
     };
   },
   listGroupMemberAsync: (opt) => {
-    let { groupId, pageNum, pageSize, success } = opt;
+    let { groupId, pageNum, pageSize, success, insert = false } = opt;
     pageNum = pageNum || 1;
-    pageSize = pageSize || 1;
+    pageSize = pageSize || 10;
     return (dispatch, getState) => {
       let dt = getState().entities.groupMember[groupId]?.byName || {};
       let oldMemberIds = Object.keys(dt);
@@ -96,7 +96,7 @@ const { Types, Creators } = createActions({
         .listGroupMembers({
           groupId,
           pageNum,
-          pageSize
+          pageSize,
         })
         .then(async (response) => {
           const members = response.data.filter((item) => {
@@ -118,10 +118,15 @@ const { Types, Creators } = createActions({
                 groupMemberAttr?.data?.[item.member || item.owner];
             });
             dispatch(
-              Creators.setGroupMember(groupId, [...oldMembersInfo, ...members])
+              Creators.setGroupMember(
+                groupId,
+                insert
+                  ? [...members, ...oldMembersInfo]
+                  : [...oldMembersInfo, ...members]
+              )
             );
           }
-          success?.();
+          success?.(response.data);
         })
         .catch((e) => {
           console.log(e);

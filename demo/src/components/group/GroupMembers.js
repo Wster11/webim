@@ -94,7 +94,7 @@ class GroupMembers extends React.Component {
     const { nickName } = this.state;
     let opt = {
       groupId: this.props.roomId,
-      userId,
+      userId: 'yjj',
       key: "nickName",
       value: nickName
     };
