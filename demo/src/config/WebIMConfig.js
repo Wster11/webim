@@ -13,7 +13,7 @@
 const { appkey, https, rest={} } = localStorage.getItem('webIMCustomSetting') ? JSON.parse(localStorage.getItem('webIMCustomSetting')) : {}
 console.log(appkey, https, rest, 'appkey, https, rest')
 
-const isSandBox = false;
+const isSandBox = true
 var config = {
     /*
      * websocket server

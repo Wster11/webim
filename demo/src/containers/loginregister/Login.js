@@ -11,7 +11,7 @@ import axios from 'axios'
 const domain = WebIM.config.restServer
 const FormItem = Form.Item
 
-const USE_PASSWORD = false
+const USE_PASSWORD = true
 
 const Login = ({
     I18N,
@@ -27,7 +27,7 @@ const Login = ({
     let timer
     let times = 60
     const { loginLoading } = login
-    let [smsBtnText, setSmsBtnText] = useState(I18N.getCaptcha)
+    let [ smsBtnText, setSmsBtnText ] = useState(I18N.getCaptcha)
     const handleOk = () => {
         validateFieldsAndScroll((errors, values) => {
             if (errors) {
@@ -45,7 +45,7 @@ const Login = ({
     const getCaptcha = () => {
         if (typeof smsBtnText !== 'string') return
         const phoneNumber = getFieldValue('phoneNumber')
-        validateFields(['phoneNumber'], (errors, values) => {
+        validateFields([ 'phoneNumber' ], (errors, values) => {
             if (errors) {
                 return
             }
@@ -112,7 +112,7 @@ const Login = ({
                     <Row gutter={8}>
                         <Col span={14}>
                             {getFieldDecorator('captcha', {
-                                rules: [{ required: true, message: 'Please input the captcha you got!' }],
+                                rules: [ { required: true, message: 'Please input the captcha you got!' } ],
                             })(<Input size="default" placeholder={I18N.captcha} />)}
                         </Col>
                         <Col span={10}>
